@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.github.mocanjie.base.mymvc.configuration.AutoConfiguration
+io.github.mocanjie.base.mymvc.configuration.MyMvcAutoConfiguration
