@@ -10,7 +10,7 @@ import java.util.Map;
 
 public interface IBaseService {
 
-	<T> Pager queryPageForSql(String sql, Object param, Pager pager, Class<T> clazz);
+	<T> Pager<T> queryPageForSql(String sql, Object param, Pager<T> pager, Class<T> clazz);
 
 	<T> List<T> queryListForSql(String sql, Object param, Class<T> clazz);
 
@@ -18,7 +18,7 @@ public interface IBaseService {
 
 	<T> T querySingleByField(String fieldName,String fieldValue, Class<T> clazz);
 
-	<T> Pager queryPageForSql(String sql, Map<String, Object> param, Pager pager, Class<T> clazz);
+	<T> Pager<T> queryPageForSql(String sql, Map<String, Object> param, Pager<T> pager, Class<T> clazz);
 
 	<T> List<T> queryListForSql(String sql, Map<String, Object> param, Class<T> clazz);
 

@@ -7,6 +7,7 @@ import io.github.mocanjie.base.mymvc.service.IBaseService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -28,7 +29,7 @@ public class BaseServiceImpl implements IBaseService {
 	protected NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@Override
-	public <T> Pager queryPageForSql(String sql, Object param, Pager pager, Class<T> clazz) {
+	public <T> Pager<T> queryPageForSql(String sql, Object param, Pager<T> pager, Class<T> clazz) {
 		return baseDao.queryPageForSql(sql, param, pager,clazz);
 	}
 
@@ -48,7 +49,7 @@ public class BaseServiceImpl implements IBaseService {
 	}
 
 	@Override
-	public <T> Pager queryPageForSql(String sql, Map<String, Object> param, Pager pager, Class<T> clazz) {
+	public <T> Pager<T> queryPageForSql(String sql, Map<String, Object> param, Pager<T> pager, Class<T> clazz) {
 		return baseDao.queryPageForSql(sql, param, pager, clazz);
 	}
 

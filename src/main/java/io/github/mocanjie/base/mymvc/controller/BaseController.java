@@ -1,8 +1,6 @@
 package io.github.mocanjie.base.mymvc.controller;
 
 
-import io.github.mocanjie.base.mycommon.data.DataPagerResult;
-import io.github.mocanjie.base.mycommon.data.DataResult;
 import io.github.mocanjie.base.mycommon.data.ResponseResult;
 import io.github.mocanjie.base.mycommon.exception.BaseException;
 import io.github.mocanjie.base.mycommon.pager.Pager;
@@ -27,21 +25,21 @@ public class BaseController {
 	public static String DUPLICATEKEY_ERROR_MSG = "系统已经存在该记录";
 
 	protected @ResponseBody
-	ResponseResult doJsonPagerOut(Pager pager){
-		return new DataPagerResult(pager);
+	<T> ResponseResult<T> doJsonPagerOut(T pager){
+		return new ResponseResult(pager);
 	}
 
 	protected @ResponseBody
 	ResponseResult doJsonOut(Object data){
-		return new DataResult(data);
+		return new ResponseResult(data);
 	}
 
 	protected @ResponseBody ResponseResult doJsonOut(int code,String msg,Object data){
-		return new DataResult(code,msg, data);
+		return new ResponseResult(code,msg, data);
 	}
 
 	protected @ResponseBody ResponseResult doJsonOut(String msg,Object data){
-		return new DataResult(msg, data);
+		return new ResponseResult(msg, data);
 	}
 
 	protected @ResponseBody ResponseResult doJsonMsg(int code,String msg){
