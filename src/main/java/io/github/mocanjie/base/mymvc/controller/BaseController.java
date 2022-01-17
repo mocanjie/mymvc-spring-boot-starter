@@ -1,13 +1,11 @@
 package io.github.mocanjie.base.mymvc.controller;
 
 
-import io.github.mocanjie.base.mycommon.data.ResponseResult;
 import io.github.mocanjie.base.mycommon.exception.BaseException;
-import io.github.mocanjie.base.mycommon.pager.Pager;
+import io.github.mocanjie.base.mymvc.data.ResponseResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -63,11 +61,6 @@ public class BaseController {
 		return doJsonMsg(e.getCode(), e.getMessage());
 	}
 
-	@ExceptionHandler(DuplicateKeyException.class)
-	private ResponseResult handleDuplicateKeyException(DuplicateKeyException e){
-		return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), DUPLICATEKEY_ERROR_MSG);
-	}
-
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
 	private ResponseResult handleDuplicateKeyException(HttpRequestMethodNotSupportedException e){
 		return doJsonMsg(HttpStatus.METHOD_NOT_ALLOWED.value(), e.getMessage());
@@ -95,6 +88,9 @@ public class BaseController {
 		if(te instanceof BaseException) {
 			BaseException be = (BaseException)te;
 			return doJsonMsg(be.getCode(), be.getMessage());
+		}
+		if(te.getClass().getName().equalsIgnoreCase("org.springframework.dao.DuplicateKeyException")){
+			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), DUPLICATEKEY_ERROR_MSG);
 		}
 		log.error("处理异常",e);
 		return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), "请求失败,请稍后再试");

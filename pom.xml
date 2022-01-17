@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.mocanjie</groupId>
     <artifactId>mymvc-spring-boot-starter</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.2</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}-${project.version}</name>
     <description>${project.artifactId}-${project.version}</description>
@@ -45,25 +45,24 @@
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-
         <spring-boot-starter-web.version>2.5.4</spring-boot-starter-web.version>
-        <myjpa-spring-boot-starter.version>2.0.1</myjpa-spring-boot-starter.version>
-
+        <mycommon.version>2.0.2</mycommon.version>
     </properties>
 
     <dependencies>
-
-        <dependency>
-            <groupId>io.github.mocanjie</groupId>
-            <artifactId>myjpa-spring-boot-starter</artifactId>
-            <version>${myjpa-spring-boot-starter.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring-boot-starter-web.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.github.mocanjie</groupId>
+            <artifactId>mycommon</artifactId>
+            <version>${mycommon.version}</version>
+        </dependency>
+
     </dependencies>
 
 
