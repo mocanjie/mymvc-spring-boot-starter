@@ -10,9 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.LinkedList;
+import java.util.List;
 
 @Slf4j
 public class BaseController {
@@ -72,9 +77,17 @@ public class BaseController {
 
 	@ExceptionHandler(BindException.class)
 	private ResponseResult handleException(BindException e){
-		BindingResult br = e.getBindingResult();
-		String msg = br.getFieldError().getDefaultMessage();
-		return doJsonMsg(HttpStatus.EXPECTATION_FAILED.value(), msg);
+		BindingResult bindingResult = e.getBindingResult();
+		return doJsonMsg(HttpStatus.BAD_REQUEST.value(), getErrorsMsg(bindingResult));
+	}
+
+	private String getErrorsMsg(BindingResult result) {
+		List<String> errMsg = new LinkedList<>();
+		List<FieldError> list = result.getFieldErrors();
+		for (FieldError error : list) {
+			errMsg.add(String.format("%s %s",error.getField(), error.getDefaultMessage()));
+		}
+		return errMsg.toString();
 	}
 	
 	
@@ -92,6 +105,10 @@ public class BaseController {
 		if(te.getClass().getName().equalsIgnoreCase("org.springframework.dao.DuplicateKeyException")){
 			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), DUPLICATEKEY_ERROR_MSG);
 		}
+		if(te instanceof HttpMediaTypeNotSupportedException){
+			return doJsonMsg(HttpStatus.UNPROCESSABLE_ENTITY.value(), REQUEST_ERROR_MSG);
+		}
+
 		log.error("处理异常",e);
 		return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), "请求失败,请稍后再试");
 	}
