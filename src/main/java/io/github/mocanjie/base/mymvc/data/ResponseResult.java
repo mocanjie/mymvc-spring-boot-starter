@@ -17,6 +17,11 @@ public class ResponseResult<T> {
 		this.data = data;
 	}
 
+	public ResponseResult(int code,String msg) {
+		this.code = code;
+		this.msg = msg;
+	}
+
 	public ResponseResult(int code,T data) {
 		this.code = code;
 		this.data = data;

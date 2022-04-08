@@ -105,6 +105,12 @@ public class BaseController {
 		if(te.getClass().getName().equalsIgnoreCase("org.springframework.dao.DuplicateKeyException")){
 			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), DUPLICATEKEY_ERROR_MSG);
 		}
+		if(te.getClass().getName().equalsIgnoreCase("org.springframework.security.access.AccessDeniedException")){
+			return doJsonMsg(HttpStatus.FORBIDDEN.value(), PERMISSION_ERROR_MSG);
+		}
+		if(te.getClass().getName().equalsIgnoreCase("org.springframework.security.core.AuthenticationException")){
+			return doJsonMsg(HttpStatus.FORBIDDEN.value(), PERMISSION_ERROR_MSG);
+		}
 		if(te instanceof HttpMediaTypeNotSupportedException){
 			return doJsonMsg(HttpStatus.UNPROCESSABLE_ENTITY.value(), REQUEST_ERROR_MSG);
 		}
