@@ -9,7 +9,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import java.util.Set;
 
-public class ValidatorUtils {
+public class MyValidatorUtils {
     private static Validator validator;
 
     static {

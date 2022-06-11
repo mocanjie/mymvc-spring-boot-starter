@@ -2,10 +2,12 @@ package io.github.mocanjie.base.mymvc.controller;
 
 
 import io.github.mocanjie.base.mycommon.exception.BaseException;
-import io.github.mocanjie.base.mymvc.data.ResponseResult;
+import io.github.mocanjie.base.mymvc.data.MyResponseResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.hibernate.validator.internal.engine.ConstraintViolationImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -20,7 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
-public class BaseController {
+public class MyBaseController {
 
 	public static String LOGIN_ERROR_MSG = "非法授权,请先登录";
 	public static String PERMISSION_ERROR_MSG = "您没有权限，请联系管理员授权";
@@ -28,32 +30,32 @@ public class BaseController {
 	public static String DUPLICATEKEY_ERROR_MSG = "系统已经存在该记录";
 
 	protected @ResponseBody
-	<T> ResponseResult<T> doJsonPagerOut(T pager){
-		return new ResponseResult(pager);
+	<T> MyResponseResult<T> doJsonPagerOut(T pager){
+		return new MyResponseResult(pager);
 	}
 
 	protected @ResponseBody
-	ResponseResult doJsonOut(Object data){
-		return new ResponseResult(data);
+	MyResponseResult doJsonOut(Object data){
+		return new MyResponseResult(data);
 	}
 
-	protected @ResponseBody ResponseResult doJsonOut(int code,String msg,Object data){
-		return new ResponseResult(code,msg, data);
+	protected @ResponseBody MyResponseResult doJsonOut(int code, String msg, Object data){
+		return new MyResponseResult(code,msg, data);
 	}
 
-	protected @ResponseBody ResponseResult doJsonOut(String msg,Object data){
-		return new ResponseResult(msg, data);
+	protected @ResponseBody MyResponseResult doJsonOut(String msg, Object data){
+		return new MyResponseResult(msg, data);
 	}
 
-	protected @ResponseBody ResponseResult doJsonMsg(int code,String msg){
-		return new ResponseResult(code, msg);
+	protected @ResponseBody MyResponseResult doJsonMsg(int code, String msg){
+		return new MyResponseResult(code, msg);
 	}
 
-	protected @ResponseBody ResponseResult doJsonMsg(String msg){
+	protected @ResponseBody MyResponseResult doJsonMsg(String msg){
 		return doJsonMsg(200,msg);
 	}
 
-	protected @ResponseBody ResponseResult doJsonDefaultMsg(){
+	protected @ResponseBody MyResponseResult doJsonDefaultMsg(){
 		return doJsonMsg(200,"操作成功");
 	}
 
@@ -62,21 +64,21 @@ public class BaseController {
 	 * 处理自定义异常
 	 */
 	@ExceptionHandler(BaseException.class)
-	private ResponseResult handleException(BaseException e){
+	private MyResponseResult handleException(BaseException e){
 		return doJsonMsg(e.getCode(), e.getMessage());
 	}
 
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-	private ResponseResult handleDuplicateKeyException(HttpRequestMethodNotSupportedException e){
+	private MyResponseResult handleDuplicateKeyException(HttpRequestMethodNotSupportedException e){
 		return doJsonMsg(HttpStatus.METHOD_NOT_ALLOWED.value(), e.getMessage());
 	}
 	@ExceptionHandler(HttpMessageNotReadableException.class)
-	private ResponseResult handleHttpMessageNotReadableException(HttpMessageNotReadableException e){
+	private MyResponseResult handleHttpMessageNotReadableException(HttpMessageNotReadableException e){
 		return doJsonMsg(HttpStatus.UNPROCESSABLE_ENTITY.value(), REQUEST_ERROR_MSG);
 	}
 
 	@ExceptionHandler(BindException.class)
-	private ResponseResult handleException(BindException e){
+	private MyResponseResult handleException(BindException e){
 		BindingResult bindingResult = e.getBindingResult();
 		return doJsonMsg(HttpStatus.BAD_REQUEST.value(), getErrorsMsg(bindingResult));
 	}
@@ -85,9 +87,19 @@ public class BaseController {
 		List<String> errMsg = new LinkedList<>();
 		List<FieldError> list = result.getFieldErrors();
 		for (FieldError error : list) {
-			errMsg.add(String.format("%s %s",error.getField(), error.getDefaultMessage()));
+			ConstraintViolationImpl source = error.unwrap(ConstraintViolationImpl.class);
+			String messageTemplate = source.getMessageTemplate();
+			if(StringUtils.isNotBlank(messageTemplate) && messageTemplate.indexOf("{")!=-1 && messageTemplate.indexOf("}")!=-1){
+				errMsg.add(String.format("%s %s",error.getField(), error.getDefaultMessage()));
+			}else{
+				errMsg.add(messageTemplate);
+			}
 		}
 		return errMsg.toString();
+	}
+
+	public static void main(String[] args) {
+		System.out.println("{aaa}".indexOf("}"));
 	}
 	
 	
@@ -96,7 +108,7 @@ public class BaseController {
 	}
 	
 	@ExceptionHandler(Exception.class)
-	private ResponseResult handleException(Exception e){
+	private MyResponseResult handleException(Exception e){
 		Throwable te = ExceptionUtils.getRootCause(e);
 		if(te instanceof BaseException) {
 			BaseException be = (BaseException)te;
