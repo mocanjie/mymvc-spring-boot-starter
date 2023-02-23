@@ -98,11 +98,6 @@ public class MyBaseController {
 		return errMsg.toString();
 	}
 
-	public static void main(String[] args) {
-		System.out.println("{aaa}".indexOf("}"));
-	}
-	
-	
 	@ExceptionHandler(ClientAbortException.class)
 	private void handleException(ClientAbortException e){
 	}
@@ -110,6 +105,10 @@ public class MyBaseController {
 	@ExceptionHandler(Exception.class)
 	private MyResponseResult handleException(Exception e){
 		Throwable te = ExceptionUtils.getRootCause(e);
+		if(te==null){
+			List<Throwable> throwableList = ExceptionUtils.getThrowableList(e);
+			te = throwableList.get(0);
+		}
 		if(te instanceof BaseException) {
 			BaseException be = (BaseException)te;
 			return doJsonMsg(be.getCode(), be.getMessage());
