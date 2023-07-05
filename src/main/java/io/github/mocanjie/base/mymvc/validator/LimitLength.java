@@ -15,7 +15,7 @@ import static java.lang.annotation.ElementType.PARAMETER;
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 @Documented
 public @interface LimitLength {
-	String message() default "不能为空,且长度不能大于100个字";
+	String message() default "";
 	int min() default 0;
 	int max() default 255;
 	Class<?>[] groups() default {};
