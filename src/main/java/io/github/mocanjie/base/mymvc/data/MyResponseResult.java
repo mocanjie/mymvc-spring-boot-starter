@@ -1,5 +1,6 @@
 package io.github.mocanjie.base.mymvc.data;
 
+
 import lombok.Data;
 
 /**

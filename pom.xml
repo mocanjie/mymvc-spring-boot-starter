@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.mocanjie</groupId>
     <artifactId>mymvc-spring-boot-starter</artifactId>
-    <version>2.0.12</version>
+    <version>2401</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}-${project.version}</name>
     <description>${project.artifactId}-${project.version}</description>
@@ -45,16 +45,32 @@
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        <spring-boot-starter-web.version>2.7.0</spring-boot-starter-web.version>
-        <mycommon.version>2.0.2</mycommon.version>
+        <spring-boot-starter-web.version>2.7.18</spring-boot-starter-web.version>
+        <mycommon.version>2401</mycommon.version>
     </properties>
 
     <dependencies>
+
+        <!--spring核心依赖，会将spring-aop传递进来-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.32</version>
+            <scope>compile</scope>
+        </dependency>
+        <!--切入点表达式依赖，目的是找到切入点方法，也就是找到要增强的方法-->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.21</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring-boot-starter-web.version}</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -62,6 +78,14 @@
             <artifactId>mycommon</artifactId>
             <version>${mycommon.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <version>2.7.18</version>
+            <scope>compile</scope>
+        </dependency>
+
 
     </dependencies>
 

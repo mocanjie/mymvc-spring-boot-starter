@@ -3,11 +3,11 @@ package io.github.mocanjie.base.mymvc.controller;
 
 import io.github.mocanjie.base.mycommon.exception.BaseException;
 import io.github.mocanjie.base.mymvc.data.MyResponseResult;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.validator.internal.engine.ConstraintViolationImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -22,13 +22,15 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Slf4j
 public class MyBaseController {
+
 
 	public static String LOGIN_ERROR_MSG = "非法授权,请先登录";
 	public static String PERMISSION_ERROR_MSG = "您没有权限，请联系管理员授权";
 	public static String REQUEST_ERROR_MSG = "请求参数格式错误";
 	public static String DUPLICATEKEY_ERROR_MSG = "系统已经存在该记录";
+
+	static Logger log = LoggerFactory.getLogger(MyBaseController.class);
 
 	protected @ResponseBody
 	<T> MyResponseResult<T> doJsonPagerOut(T pager){
@@ -100,10 +102,6 @@ public class MyBaseController {
 		return errMsg.toString();
 	}
 
-	@ExceptionHandler(ClientAbortException.class)
-	private void handleException(ClientAbortException e){
-	}
-	
 	@ExceptionHandler(Exception.class)
 	private MyResponseResult handleException(Exception e){
 		Throwable te = ExceptionUtils.getRootCause(e);
@@ -127,7 +125,6 @@ public class MyBaseController {
 		if(te instanceof HttpMediaTypeNotSupportedException){
 			return doJsonMsg(HttpStatus.UNPROCESSABLE_ENTITY.value(), REQUEST_ERROR_MSG);
 		}
-
 		log.error("处理异常",e);
 		return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), "请求失败,请稍后再试");
 	}
