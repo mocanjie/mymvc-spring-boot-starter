@@ -4,16 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
 import org.hibernate.validator.internal.engine.path.NodeImpl;
 import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl;
-import org.hibernate.validator.internal.util.annotation.ConstraintAnnotationDescriptor;
-import org.springframework.beans.BeanUtils;
+
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.metadata.ConstraintDescriptor;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 public class LimitLengthValidator implements ConstraintValidator<LimitLength, String> {
@@ -47,7 +43,7 @@ public class LimitLengthValidator implements ConstraintValidator<LimitLength, St
 				String fileName = leafNode.getName();
 				message = String.format("%s 长度必须在%s~%s之间", fileName,min,max);
 			}catch (Exception e){
-				message = String.format("???字段长度必须在%s~%s之间", min,max);
+				message = String.format("字段长度必须在%s~%s之间", min,max);
 			}
 		}
 		//判断text是否符合,并输出
