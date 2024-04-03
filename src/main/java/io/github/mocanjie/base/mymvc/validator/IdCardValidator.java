@@ -1,7 +1,13 @@
 package io.github.mocanjie.base.mymvc.validator;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
+import org.hibernate.validator.internal.engine.path.NodeImpl;
+import org.hibernate.validator.internal.engine.path.PathImpl;
+
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -12,26 +18,58 @@ import java.util.regex.Pattern;
 public class IdCardValidator implements ConstraintValidator<IdCard, String> {
 	
 	private String message;
+
+    private boolean required;
+
+    private String alertMessage;
 	
 	@Override
 	public void initialize(IdCard paramA) {
 		this.message = paramA.message();
+        this.required = paramA.required();
 	}
 
 	@Override
 	public boolean isValid(String idCard,ConstraintValidatorContext paramConstraintValidatorContext) {
-		if(idCard==null || idCard.trim().equals("")){
-			message = "身份证不能为空";
-		}else{
-			if(isIdCard(idCard)){
-				return true;
-			}else{
-				message = "身份证号码格式不正确";
-			}
-		}
-		paramConstraintValidatorContext.disableDefaultConstraintViolation();
-		paramConstraintValidatorContext.buildConstraintViolationWithTemplate(message).addConstraintViolation();
-		return false;
+
+        ConstraintValidatorContextImpl context = (ConstraintValidatorContextImpl) paramConstraintValidatorContext;
+        String fileName = "";
+        alertMessage = null;
+        try {
+            Field basePath = ConstraintValidatorContextImpl.class.getDeclaredField("basePath");
+            basePath.setAccessible(true);  //这个起决定作用
+            PathImpl pathImpl = (PathImpl)basePath.get(context);
+            NodeImpl leafNode = pathImpl.getLeafNode();
+            fileName = leafNode.getName();
+        }catch (Exception e){
+        }
+        if(required && (idCard==null || idCard.trim().equals(""))){
+            if(message==null || message.trim().equals("")){
+                alertMessage = String.format("%s 不能为空",fileName);
+            }else{
+                alertMessage = message;
+            }
+        }else{
+            if(idCard==null || idCard.trim().equals("")){
+                return true;
+            }
+            if(isIdCard(idCard)){
+                return true;
+            }else{
+                if(message==null || message.trim().equals("")){
+                    alertMessage = String.format("%s 身份证号码格式不正确",fileName);
+                }else{
+                    alertMessage = message;
+                }
+            }
+        }
+        if(StringUtils.isBlank(alertMessage)){
+            return true;
+        }
+        paramConstraintValidatorContext.disableDefaultConstraintViolation();
+        paramConstraintValidatorContext.buildConstraintViolationWithTemplate(alertMessage).addConstraintViolation();
+        return false;
+
 	}
 	
 	public static boolean isIdCard(String num){

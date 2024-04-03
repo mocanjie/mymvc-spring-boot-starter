@@ -10,20 +10,19 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.PARAMETER;
 
 /**
- * 身份证号
- * 
- * @author canjie.mo
- * @since 2016年8月19日
+ * 验证字符是否是日期格式
  */
-@Constraint(validatedBy = IdCardValidator.class)
+@Constraint(validatedBy = DateValidator.class)
 // 具体的实现
 @Target({FIELD, PARAMETER})
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 @Documented
-public @interface IdCard {
-	String message() default "身份证号码格式不正确";
+public @interface Date {
+	String message() default "";
 
 	boolean required() default true;
+
+	String format() default "yyyy-MM-dd";
 
 	Class<?>[] groups() default {};
 

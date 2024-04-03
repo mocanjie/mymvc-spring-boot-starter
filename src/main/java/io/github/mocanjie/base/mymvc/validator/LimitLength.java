@@ -16,8 +16,10 @@ import static java.lang.annotation.ElementType.PARAMETER;
 @Documented
 public @interface LimitLength {
 	String message() default "";
-	int min() default 0;
-	int max() default 255;
+	boolean required() default true;
+	int chineseLength() default 2;
+	long min() default 0;
+	long max() default Integer.MAX_VALUE;
 	Class<?>[] groups() default {};
 	Class<? extends Payload>[] payload() default {};
 

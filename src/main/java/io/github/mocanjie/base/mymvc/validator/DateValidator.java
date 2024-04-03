@@ -9,24 +9,23 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 
-public class NumberValidator implements ConstraintValidator<Number, String> {
+public class DateValidator implements ConstraintValidator<Date, String> {
 	
 	private String message;
     private boolean required;
-    private boolean integer;
+    private String format;
     private String alertMessage;
 
-    private long min;
-    private long max;
+    private SimpleDateFormat sdf = new SimpleDateFormat();
+
 
 	@Override
-	public void initialize(Number paramA) {
+	public void initialize(Date paramA) {
 		this.message = paramA.message();
         this.required = paramA.required();
-        this.min = paramA.min();
-        this.max = paramA.max();
-        this.integer = paramA.integer();
+        this.format = paramA.format();
 	}
 
 	@Override
@@ -52,44 +51,16 @@ public class NumberValidator implements ConstraintValidator<Number, String> {
             if(requestVal==null || requestVal.trim().equals("")){
                 return true;
             }
-            BigDecimal bigDecimal = BigDecimal.ZERO;
             try{
-                bigDecimal = new BigDecimal(requestVal);
-                if(integer){
-                    try {
-                        bigDecimal = new BigDecimal(requestVal);
-                    }catch (Exception e){
-                        if(message==null || message.trim().equals("")){
-                            alertMessage = String.format("%s 必须是整数",fileName);
-                        }else{
-                            alertMessage = message;
-                        }
-                    }
-                }
+                sdf.applyPattern(format);
+                sdf.parse(requestVal);
             }catch (Exception e){
                 if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 必须是数字",fileName);
+                    alertMessage = String.format("%s 必须是%s格式的日期",fileName,format);
                 }else{
                     alertMessage = message;
                 }
             }
-
-            if (bigDecimal.compareTo(new BigDecimal(min)) < 0) {
-                if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 必须大于等于 %s",fileName,min);
-                }else{
-                    alertMessage = message;
-                }
-            }
-
-            if (bigDecimal.compareTo(new BigDecimal(max)) > 0) {
-                if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 必须小于等于 %s",fileName,max);
-                }else {
-                    alertMessage = message;
-                }
-            }
-
 		}
         if(StringUtils.isBlank(alertMessage)){
             return true;

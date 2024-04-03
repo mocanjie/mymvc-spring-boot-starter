@@ -2,6 +2,7 @@ package io.github.mocanjie.base.mymvc.validator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
+import javax.validation.groups.Default;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -21,6 +22,8 @@ public @interface Number {
 	String message() default "";
 
 	boolean required() default true;
+
+	boolean integer() default false;
 
 	long max() default Integer.MAX_VALUE;
 
