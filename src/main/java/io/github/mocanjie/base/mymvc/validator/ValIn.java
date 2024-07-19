@@ -26,6 +26,8 @@ public @interface ValIn {
 	boolean ignoreCase() default true;
 	boolean required() default true;
 
+	EnumType[] enumType() default {};
+
 	Class<?>[] groups() default {};
 
 	Class<? extends Payload>[] payload() default {};

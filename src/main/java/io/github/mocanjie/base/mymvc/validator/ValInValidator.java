@@ -8,6 +8,7 @@ import org.hibernate.validator.internal.engine.path.PathImpl;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 public class ValInValidator implements ConstraintValidator<ValIn, String> {
 	
@@ -16,14 +17,16 @@ public class ValInValidator implements ConstraintValidator<ValIn, String> {
     private String[] value;
     private String alertMessage;
     private boolean ignoreCase;
-	
+    private EnumType[] enumTypes;
+
 	@Override
 	public void initialize(ValIn paramA) {
 		this.message = paramA.message();
         this.required = paramA.required();
         this.value = paramA.value();
         this.ignoreCase = paramA.ignoreCase();
-	}
+        this.enumTypes = paramA.enumType();
+    }
 
 	@Override
 	public boolean isValid(String requestVal,ConstraintValidatorContext paramConstraintValidatorContext) {
@@ -59,7 +62,44 @@ public class ValInValidator implements ConstraintValidator<ValIn, String> {
                     return true;
                 }
             }
-		}
+
+            for (EnumType enumType : enumTypes) {
+                String key = enumType.valKey();
+                String[] include = enumType.include();
+                String[] exclude = enumType.exclude();
+                Class<? extends Enum> enumName = enumType.type();
+                Enum[] enumConstants = enumName.getEnumConstants();
+                for (Enum enumConstant : enumConstants) {
+                    String name = enumConstant.name();
+                    if(include!=null && include.length>0){
+                        boolean present = Arrays.stream(include).filter(a -> name.equalsIgnoreCase(a)).findFirst().isPresent();
+                        if(!present) continue;
+                    }
+                    if(exclude!=null && exclude.length>0){
+                        boolean present = Arrays.stream(exclude).filter(a -> name.equalsIgnoreCase(a)).findFirst().isPresent();
+                        if(present) continue;
+                    }
+                    Class declaringClass = enumConstant.getDeclaringClass();
+                    try {
+                        Field declaredField = declaringClass.getDeclaredField(key);
+                        declaredField.setAccessible(true);
+                        Object o = declaredField.get(enumConstant);
+                        String val = String.valueOf(o);
+                        if(ignoreCase?!requestVal.trim().equalsIgnoreCase(val):!requestVal.trim().equals(val)){
+                            if(message==null || message.trim().equals("")){
+                                alertMessage = String.format("%s 的值不在规定范围",fileName);
+                            }else{
+                                alertMessage = message;
+                            }
+                        }else {
+                            return true;
+                        }
+                    }catch (Exception e){
+
+                    }
+                }
+            }
+        }
 
         if(StringUtils.isBlank(alertMessage)){
             return true;
