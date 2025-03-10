@@ -122,10 +122,13 @@ public class MyBaseController {
 		if(te.getClass().getName().equalsIgnoreCase("org.springframework.security.core.AuthenticationException")){
 			return doJsonMsg(HttpStatus.FORBIDDEN.value(), PERMISSION_ERROR_MSG);
 		}
-		if(te.getClass().getName().startsWith("com.seer.face.sync.exception")){
+		if(te.getClass().getName().contains("com.seer.face.sync.exception")){
 			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
 		}
-		if(te.getClass().getName().startsWith("com.seer.hk")){
+		if(te.getClass().getName().contains("com.seer.hk")){
+			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
+		}
+		if(te.getClass().getName().contains("com.seerbigdata.common.exception")){
 			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
 		}
 		if(te instanceof HttpMediaTypeNotSupportedException){
