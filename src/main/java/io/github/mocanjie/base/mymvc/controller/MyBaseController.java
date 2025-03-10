@@ -122,6 +122,12 @@ public class MyBaseController {
 		if(te.getClass().getName().equalsIgnoreCase("org.springframework.security.core.AuthenticationException")){
 			return doJsonMsg(HttpStatus.FORBIDDEN.value(), PERMISSION_ERROR_MSG);
 		}
+		if(te.getClass().getName().startsWith("com.seer.face.sync.exception")){
+			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
+		}
+		if(te.getClass().getName().startsWith("com.seer.hk")){
+			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
+		}
 		if(te instanceof HttpMediaTypeNotSupportedException){
 			return doJsonMsg(HttpStatus.UNPROCESSABLE_ENTITY.value(), REQUEST_ERROR_MSG);
 		}
