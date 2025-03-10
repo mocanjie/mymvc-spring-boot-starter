@@ -1,14 +1,13 @@
 package io.github.mocanjie.base.mymvc.validator;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
 import org.hibernate.validator.internal.engine.path.NodeImpl;
 import org.hibernate.validator.internal.engine.path.PathImpl;
+import org.springframework.util.StringUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 
 public class DateValidator implements ConstraintValidator<Date, String> {
@@ -62,7 +61,7 @@ public class DateValidator implements ConstraintValidator<Date, String> {
                 }
             }
 		}
-        if(StringUtils.isBlank(alertMessage)){
+        if(!StringUtils.hasText(alertMessage)){
             return true;
         }
 		paramConstraintValidatorContext.disableDefaultConstraintViolation();

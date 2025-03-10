@@ -3,13 +3,13 @@ package io.github.mocanjie.base.mymvc.controller;
 
 import io.github.mocanjie.base.mycommon.exception.BaseException;
 import io.github.mocanjie.base.mymvc.data.MyResponseResult;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.validator.internal.engine.ConstraintViolationImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -92,7 +92,7 @@ public class MyBaseController {
 		for (FieldError error : list) {
 			ConstraintViolationImpl source = error.unwrap(ConstraintViolationImpl.class);
 			String messageTemplate = source.getMessageTemplate();
-			if(StringUtils.isNotBlank(messageTemplate) && messageTemplate.indexOf("{")!=-1 && messageTemplate.indexOf("}")!=-1){
+			if(StringUtils.hasText(messageTemplate) && messageTemplate.indexOf("{")!=-1 && messageTemplate.indexOf("}")!=-1){
 				errMsg.add(String.format("%s %s",error.getField(), error.getDefaultMessage()));
 			}else{
 				errMsg.add(messageTemplate);

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.mocanjie</groupId>
     <artifactId>mymvc-spring-boot-starter</artifactId>
-    <version>202503101043</version>
+    <version>202503101108</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}-${project.version}</name>
     <description>${project.artifactId}-${project.version}</description>
@@ -46,7 +46,7 @@
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <spring-boot-starter-web.version>2.7.18</spring-boot-starter-web.version>
-        <mycommon.version>2401</mycommon.version>
+        <mycommon.version>2402</mycommon.version>
     </properties>
 
     <dependencies>
