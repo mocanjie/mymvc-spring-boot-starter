@@ -4,9 +4,9 @@ package io.github.mocanjie.base.mymvc.validator;
 
 import io.github.mocanjie.base.mycommon.exception.BusinessException;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import java.util.Set;
 
 public class MyValidatorUtils {

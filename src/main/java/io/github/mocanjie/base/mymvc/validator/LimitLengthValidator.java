@@ -1,71 +1,47 @@
 package io.github.mocanjie.base.mymvc.validator;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
-import org.hibernate.validator.internal.engine.path.NodeImpl;
-import org.hibernate.validator.internal.engine.path.PathImpl;
-
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-import javax.validation.metadata.ConstraintDescriptor;
-import java.lang.reflect.Field;
-import java.util.Map;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class LimitLengthValidator implements ConstraintValidator<LimitLength, String> {
-	
-	private boolean required;
 
-	private static int chineseLength;
+	private boolean required;
+	private int chineseLength;
+	private long min;
+	private long max;
 
 	@Override
 	public void initialize(LimitLength paramA) {
 		this.required = paramA.required();
 		this.chineseLength = paramA.chineseLength();
+		this.min = paramA.min();
+		this.max = paramA.max();
 	}
 
-
 	@Override
-	public boolean isValid(String text,ConstraintValidatorContext paramConstraintValidatorContext) {
-		ConstraintValidatorContextImpl context = (ConstraintValidatorContextImpl) paramConstraintValidatorContext;
-		ConstraintDescriptor<?> constraintDescriptor = context.getConstraintDescriptor();
-		Map<String, Object> attributes = constraintDescriptor.getAttributes();
-		Object max = attributes.get("max");
-		Object min = attributes.get("min");
-		Object message = attributes.get("message");
-		String alertMessage = null;
-		// 构建提示msg
-		try {
-			Field basePath = ConstraintValidatorContextImpl.class.getDeclaredField("basePath");
-			basePath.setAccessible(true);  //这个起决定作用
-			PathImpl pathImpl = (PathImpl)basePath.get(context);
-			NodeImpl leafNode = pathImpl.getLeafNode();
-			String fileName = leafNode.getName();
-			if(required && StringUtils.isBlank(text)){
-				if(message==null || message.toString().trim().equals("")){
-					alertMessage = String.format("%s 不能为空",fileName);
-				}else{
-					alertMessage = message.toString();
-				}
-			}else{
-				if(StringUtils.isBlank(text)){
-					return true;
-				}
-			}
-			alertMessage = String.format("%s 长度必须在%s~%s之间", fileName,min,max);
-		}catch (Exception e){
-			alertMessage = String.format("字段长度必须在%s~%s之间", min,max);
+	public boolean isValid(String text, ConstraintValidatorContext context) {
+		// 如果字段为空
+		if (StringUtils.isBlank(text)) {
+			return !required; // 如果必填则返回false，否则返回true
 		}
-		//判断text是否符合,并输出
-		paramConstraintValidatorContext.disableDefaultConstraintViolation();
-		paramConstraintValidatorContext.buildConstraintViolationWithTemplate(alertMessage).addConstraintViolation();
+
+		// 计算字符串长度
 		long len = stringLength(text);
-		if(len < Long.parseLong(min.toString())) return false;
-		if(len > Long.parseLong(max.toString())) return false;
+
+		// 检查长度范围
+		if (len < min || len > max) {
+			// 自定义错误消息
+			context.disableDefaultConstraintViolation();
+			String message = String.format("字段长度必须在%d~%d之间", min, max);
+			context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+			return false;
+		}
+
 		return true;
 	}
 	
-	private static long stringLength(String value) {
+	private long stringLength(String value) {
 		long valueLength = 0;
 		String chinese = "[\u4e00-\u9fa5]";
 		for (int i = 0; i < value.length(); i++) {

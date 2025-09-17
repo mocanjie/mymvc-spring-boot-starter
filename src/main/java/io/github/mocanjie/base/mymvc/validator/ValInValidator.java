@@ -5,8 +5,8 @@ import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintVa
 import org.hibernate.validator.internal.engine.path.NodeImpl;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 

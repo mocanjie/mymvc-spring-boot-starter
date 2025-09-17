@@ -6,14 +6,14 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import jakarta.validation.Path;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
-import javax.validation.executable.ExecutableValidator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.executable.ExecutableValidator;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -33,7 +33,7 @@ public class RequestParamValidAspect {
 
     @Pointcut("@annotation(org.springframework.validation.annotation.Validated) ")
     public void controllerBefore(){};
-    ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+    ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
     @Before("controllerBefore()")
     public void before(JoinPoint point) throws NoSuchMethodException, SecurityException{
         //  获得切入目标对象
@@ -47,8 +47,12 @@ public class RequestParamValidAspect {
         if (!validResult.isEmpty()) {
             String [] parameterNames = parameterNameDiscoverer.getParameterNames(method); // 获得方法的参数名称
             List<FieldError> errors = validResult.stream().map(constraintViolation -> {
-                PathImpl pathImpl = (PathImpl) constraintViolation.getPropertyPath();  // 获得校验的参数路径信息
-                int paramIndex = pathImpl.getLeafNode().getParameterIndex(); // 获得校验的参数位置
+                Path propertyPath = constraintViolation.getPropertyPath();  // 获得校验的参数路径信息
+                Path.Node leafNode = null;
+                for (Path.Node node : propertyPath) {
+                    leafNode = node;  // 获取最后一个节点
+                }
+                int paramIndex = leafNode.as(Path.ParameterNode.class).getParameterIndex(); // 获得校验的参数位置
                 String paramName = parameterNames[paramIndex];  // 获得校验的参数名称
                 FieldError error = new FieldError();  // 将需要的信息包装成简单的对象，方便后面处理
                 error.setName(paramName);  // 参数名称（校验错误的参数名称）
