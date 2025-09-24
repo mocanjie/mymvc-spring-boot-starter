@@ -77,7 +77,21 @@ public class MyBaseController {
 	}
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	private MyResponseResult handleHttpMessageNotReadableException(HttpMessageNotReadableException e){
-		return doJsonMsg(HttpStatus.UNPROCESSABLE_ENTITY.value(), REQUEST_ERROR_MSG);
+		String message = e.getMessage();
+		log.warn("JSON解析异常: {}", message);
+
+		// 更精确的错误信息
+		if (message != null) {
+			if (message.contains("JSON parse error")) {
+				return doJsonMsg(HttpStatus.BAD_REQUEST.value(), "JSON格式错误，请检查请求参数");
+			} else if (message.contains("Cannot deserialize")) {
+				return doJsonMsg(HttpStatus.BAD_REQUEST.value(), "参数类型错误，请检查数据类型");
+			} else if (message.contains("Required request body is missing")) {
+				return doJsonMsg(HttpStatus.BAD_REQUEST.value(), "缺少请求体");
+			}
+		}
+
+		return doJsonMsg(HttpStatus.BAD_REQUEST.value(), REQUEST_ERROR_MSG);
 	}
 
 	@ExceptionHandler(BindException.class)
