@@ -104,17 +104,25 @@ public class MyBaseController {
 		List<String> errMsg = new LinkedList<>();
 		List<FieldError> list = result.getFieldErrors();
 		for (FieldError error : list) {
-			ConstraintViolationImpl source = error.unwrap(ConstraintViolationImpl.class);
+			ConstraintViolationImpl<?> source = error.unwrap(ConstraintViolationImpl.class);
 			String messageTemplate = source.getMessageTemplate();
-			if(StringUtils.hasText(messageTemplate) && messageTemplate.indexOf("{")!=-1 && messageTemplate.indexOf("}")!=-1){
-				errMsg.add(String.format("%s %s",error.getField(), error.getDefaultMessage()));
-			}else{
+			if (StringUtils.hasText(messageTemplate)
+					&& messageTemplate.contains("{")
+					&& messageTemplate.contains("}")) {
+				errMsg.add(String.format("%s %s", error.getField(), error.getDefaultMessage()));
+			} else {
 				errMsg.add(messageTemplate);
 			}
 		}
 		Collections.sort(errMsg);
-		return errMsg.toString();
+
+		// 如果没有错误信息，直接返回 null（或者 ""，看你的需求）
+		if (errMsg.isEmpty()) {
+			return null;  // 或者 return "";
+		}
+		return String.join(",", errMsg);
 	}
+
 
 	@ExceptionHandler(Exception.class)
 	private MyResponseResult handleException(Exception e){
