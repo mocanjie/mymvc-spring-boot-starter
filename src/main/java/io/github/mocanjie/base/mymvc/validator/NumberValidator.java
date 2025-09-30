@@ -1,22 +1,15 @@
 package io.github.mocanjie.base.mymvc.validator;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
-import org.hibernate.validator.internal.engine.path.NodeImpl;
-import org.hibernate.validator.internal.engine.path.PathImpl;
-
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
 public class NumberValidator implements ConstraintValidator<Number, String> {
-	
+
 	private String message;
     private boolean required;
     private boolean integer;
-    private String alertMessage;
-
     private long min;
     private long max;
 
@@ -30,73 +23,54 @@ public class NumberValidator implements ConstraintValidator<Number, String> {
 	}
 
 	@Override
-	public boolean isValid(String requestVal,ConstraintValidatorContext paramConstraintValidatorContext) {
-        ConstraintValidatorContextImpl context = (ConstraintValidatorContextImpl) paramConstraintValidatorContext;
-        String fileName = "";
-        alertMessage = null;
-        try {
-            Field basePath = ConstraintValidatorContextImpl.class.getDeclaredField("basePath");
-            basePath.setAccessible(true);  //这个起决定作用
-            PathImpl pathImpl = (PathImpl)basePath.get(context);
-            NodeImpl leafNode = pathImpl.getLeafNode();
-            fileName = leafNode.getName();
-        }catch (Exception e){
+	public boolean isValid(String requestVal, ConstraintValidatorContext context) {
+		if(required && (requestVal == null || requestVal.trim().isEmpty())){
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
         }
-		if(required && (requestVal==null || requestVal.trim().equals(""))){
-            if(message==null || message.trim().equals("")){
-                alertMessage = String.format("%s 不能为空",fileName);
-            }else{
-                alertMessage = message;
-            }
-		}else{
-            if(requestVal==null || requestVal.trim().equals("")){
-                return true;
-            }
-            BigDecimal bigDecimal = BigDecimal.ZERO;
-            try{
-                bigDecimal = new BigDecimal(requestVal);
-                if(integer){
-                    try {
-                        bigDecimal = new BigDecimal(requestVal);
-                    }catch (Exception e){
-                        if(message==null || message.trim().equals("")){
-                            alertMessage = String.format("%s 必须是整数",fileName);
-                        }else{
-                            alertMessage = message;
-                        }
-                    }
-                }
-            }catch (Exception e){
-                if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 必须是数字",fileName);
-                }else{
-                    alertMessage = message;
-                }
-            }
 
-            if (bigDecimal.compareTo(new BigDecimal(min)) < 0) {
-                if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 必须大于等于 %s",fileName,min);
-                }else{
-                    alertMessage = message;
-                }
-            }
-
-            if (bigDecimal.compareTo(new BigDecimal(max)) > 0) {
-                if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 必须小于等于 %s",fileName,max);
-                }else {
-                    alertMessage = message;
-                }
-            }
-
-		}
-        if(StringUtils.isBlank(alertMessage)){
+        if(requestVal == null || requestVal.trim().isEmpty()){
             return true;
         }
-		paramConstraintValidatorContext.disableDefaultConstraintViolation();
-		paramConstraintValidatorContext.buildConstraintViolationWithTemplate(alertMessage).addConstraintViolation();
-		return false;
+
+        BigDecimal bigDecimal;
+        try{
+            bigDecimal = new BigDecimal(requestVal);
+            if(integer && bigDecimal.stripTrailingZeros().scale() > 0){
+                if(!StringUtils.isBlank(message)){
+                    context.disableDefaultConstraintViolation();
+                    context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+                }
+                return false;
+            }
+        }catch (Exception e){
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
+        }
+
+        if (bigDecimal.compareTo(new BigDecimal(min)) < 0) {
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
+        }
+
+        if (bigDecimal.compareTo(new BigDecimal(max)) > 0) {
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
+        }
+
+        return true;
 	}
 
 }

@@ -1,6 +1,7 @@
 package io.github.mocanjie.base.mymvc.configuration;
 
 import io.github.mocanjie.base.mymvc.aspect.RequestParamValidAspect;
+import jakarta.validation.Validator;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -16,8 +17,8 @@ public class MyMvcAutoConfiguration implements BeanPostProcessor, Ordered {
 
     @Bean
     @ConditionalOnMissingBean
-    public RequestParamValidAspect getRequestParamValidAspect(){
-        return new RequestParamValidAspect();
+    public RequestParamValidAspect getRequestParamValidAspect(Validator validator){
+        return new RequestParamValidAspect(validator);
     }
 
 

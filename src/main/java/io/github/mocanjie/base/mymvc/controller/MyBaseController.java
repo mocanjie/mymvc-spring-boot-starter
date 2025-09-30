@@ -25,12 +25,12 @@ import java.util.List;
 public class MyBaseController {
 
 
-	public static String LOGIN_ERROR_MSG = "非法授权,请先登录";
-	public static String PERMISSION_ERROR_MSG = "您没有权限，请联系管理员授权";
-	public static String REQUEST_ERROR_MSG = "请求参数格式错误";
-	public static String DUPLICATEKEY_ERROR_MSG = "系统已经存在该记录";
+	public static final String LOGIN_ERROR_MSG = "非法授权,请先登录";
+	public static final String PERMISSION_ERROR_MSG = "您没有权限，请联系管理员授权";
+	public static final String REQUEST_ERROR_MSG = "请求参数格式错误";
+	public static final String DUPLICATEKEY_ERROR_MSG = "系统已经存在该记录";
 
-	static Logger log = LoggerFactory.getLogger(MyBaseController.class);
+	private static final Logger log = LoggerFactory.getLogger(MyBaseController.class);
 
 	protected @ResponseBody
 	<T> MyResponseResult<T> doJsonPagerOut(T pager){
@@ -135,15 +135,6 @@ public class MyBaseController {
 		}
 		if(te.getClass().getName().equalsIgnoreCase("org.springframework.security.core.AuthenticationException")){
 			return doJsonMsg(HttpStatus.FORBIDDEN.value(), PERMISSION_ERROR_MSG);
-		}
-		if(te.getClass().getName().contains("com.seer.face.sync.exception")){
-			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
-		}
-		if(te.getClass().getName().contains("com.seer.hk")){
-			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
-		}
-		if(te.getClass().getName().contains("com.seerbigdata.common.exception")){
-			return doJsonMsg(HttpStatus.INTERNAL_SERVER_ERROR.value(), te.getMessage());
 		}
 		if(te instanceof HttpMediaTypeNotSupportedException){
 			return doJsonMsg(HttpStatus.UNPROCESSABLE_ENTITY.value(), REQUEST_ERROR_MSG);

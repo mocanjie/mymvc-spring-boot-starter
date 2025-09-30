@@ -1,27 +1,19 @@
 package io.github.mocanjie.base.mymvc.validator;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
-import org.hibernate.validator.internal.engine.path.NodeImpl;
-import org.hibernate.validator.internal.engine.path.PathImpl;
-
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class IdCardValidator implements ConstraintValidator<IdCard, String> {
-	
+
 	private String message;
-
     private boolean required;
-
-    private String alertMessage;
 	
 	@Override
 	public void initialize(IdCard paramA) {
@@ -30,46 +22,25 @@ public class IdCardValidator implements ConstraintValidator<IdCard, String> {
 	}
 
 	@Override
-	public boolean isValid(String idCard,ConstraintValidatorContext paramConstraintValidatorContext) {
+	public boolean isValid(String idCard, ConstraintValidatorContext context) {
+        if(required && (idCard == null || idCard.trim().isEmpty())){
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
+        }
 
-        ConstraintValidatorContextImpl context = (ConstraintValidatorContextImpl) paramConstraintValidatorContext;
-        String fileName = "";
-        alertMessage = null;
-        try {
-            Field basePath = ConstraintValidatorContextImpl.class.getDeclaredField("basePath");
-            basePath.setAccessible(true);  //这个起决定作用
-            PathImpl pathImpl = (PathImpl)basePath.get(context);
-            NodeImpl leafNode = pathImpl.getLeafNode();
-            fileName = leafNode.getName();
-        }catch (Exception e){
-        }
-        if(required && (idCard==null || idCard.trim().equals(""))){
-            if(message==null || message.trim().equals("")){
-                alertMessage = String.format("%s 不能为空",fileName);
-            }else{
-                alertMessage = message;
-            }
-        }else{
-            if(idCard==null || idCard.trim().equals("")){
-                return true;
-            }
-            if(isIdCard(idCard)){
-                return true;
-            }else{
-                if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 身份证号码格式不正确",fileName);
-                }else{
-                    alertMessage = message;
-                }
-            }
-        }
-        if(StringUtils.isBlank(alertMessage)){
+        if(idCard == null || idCard.trim().isEmpty()){
             return true;
         }
-        paramConstraintValidatorContext.disableDefaultConstraintViolation();
-        paramConstraintValidatorContext.buildConstraintViolationWithTemplate(alertMessage).addConstraintViolation();
-        return false;
 
+        boolean valid = isIdCard(idCard);
+        if(!valid && !StringUtils.isBlank(message)){
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+        }
+        return valid;
 	}
 	
 	public static boolean isIdCard(String num){
@@ -120,11 +91,10 @@ public class IdCardValidator implements ConstraintValidator<IdCard, String> {
         }     
         // =====================(end)=====================     
     
-        // ================ 地区码时候有效 ================     
-        Hashtable<String, String> h = GetAreaCode();     
-        if (h.get(Ai.substring(0, 2)) == null) {     
-           return false; 
-        }     
+        // ================ 地区码时候有效 ================
+        if (!AREA_CODE_MAP.containsKey(Ai.substring(0, 2))) {
+           return false;
+        }
         // ==============================================     
     
         // ================ 判断最后一位的值 ================     
@@ -173,44 +143,42 @@ public class IdCardValidator implements ConstraintValidator<IdCard, String> {
 	   
 
 	
-	public static Hashtable<String, String> GetAreaCode() {
-        Hashtable<String, String> hashtable = new Hashtable<String, String>();     
-        hashtable.put("11", "北京");     
-        hashtable.put("12", "天津");     
-        hashtable.put("13", "河北");     
-        hashtable.put("14", "山西");     
-        hashtable.put("15", "内蒙古");     
-        hashtable.put("21", "辽宁");     
-        hashtable.put("22", "吉林");     
-        hashtable.put("23", "黑龙江");     
-        hashtable.put("31", "上海");     
-        hashtable.put("32", "江苏");     
-        hashtable.put("33", "浙江");     
-        hashtable.put("34", "安徽");     
-        hashtable.put("35", "福建");     
-        hashtable.put("36", "江西");     
-        hashtable.put("37", "山东");     
-        hashtable.put("41", "河南");     
-        hashtable.put("42", "湖北");     
-        hashtable.put("43", "湖南");     
-        hashtable.put("44", "广东");     
-        hashtable.put("45", "广西");     
-        hashtable.put("46", "海南");     
-        hashtable.put("50", "重庆");     
-        hashtable.put("51", "四川");     
-        hashtable.put("52", "贵州");     
-        hashtable.put("53", "云南");     
-        hashtable.put("54", "西藏");     
-        hashtable.put("61", "陕西");     
-        hashtable.put("62", "甘肃");     
-        hashtable.put("63", "青海");     
-        hashtable.put("64", "宁夏");     
-        hashtable.put("65", "新疆");     
-        hashtable.put("71", "台湾");     
-        hashtable.put("81", "香港");     
-        hashtable.put("82", "澳门");     
-        hashtable.put("91", "国外");     
-        return hashtable;     
-    }
+	private static final Map<String, String> AREA_CODE_MAP = Map.ofEntries(
+        Map.entry("11", "北京"),
+        Map.entry("12", "天津"),
+        Map.entry("13", "河北"),
+        Map.entry("14", "山西"),
+        Map.entry("15", "内蒙古"),
+        Map.entry("21", "辽宁"),
+        Map.entry("22", "吉林"),
+        Map.entry("23", "黑龙江"),
+        Map.entry("31", "上海"),
+        Map.entry("32", "江苏"),
+        Map.entry("33", "浙江"),
+        Map.entry("34", "安徽"),
+        Map.entry("35", "福建"),
+        Map.entry("36", "江西"),
+        Map.entry("37", "山东"),
+        Map.entry("41", "河南"),
+        Map.entry("42", "湖北"),
+        Map.entry("43", "湖南"),
+        Map.entry("44", "广东"),
+        Map.entry("45", "广西"),
+        Map.entry("46", "海南"),
+        Map.entry("50", "重庆"),
+        Map.entry("51", "四川"),
+        Map.entry("52", "贵州"),
+        Map.entry("53", "云南"),
+        Map.entry("54", "西藏"),
+        Map.entry("61", "陕西"),
+        Map.entry("62", "甘肃"),
+        Map.entry("63", "青海"),
+        Map.entry("64", "宁夏"),
+        Map.entry("65", "新疆"),
+        Map.entry("71", "台湾"),
+        Map.entry("81", "香港"),
+        Map.entry("82", "澳门"),
+        Map.entry("91", "国外")
+    );
 
 }

@@ -1,21 +1,16 @@
 package io.github.mocanjie.base.mymvc.validator;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
-import org.hibernate.validator.internal.engine.path.NodeImpl;
-import org.hibernate.validator.internal.engine.path.PathImpl;
-
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
 public class ValInValidator implements ConstraintValidator<ValIn, String> {
-	
+
 	private String message;
     private boolean required;
     private String[] value;
-    private String alertMessage;
     private boolean ignoreCase;
     private EnumType[] enumTypes;
 
@@ -29,40 +24,28 @@ public class ValInValidator implements ConstraintValidator<ValIn, String> {
     }
 
 	@Override
-	public boolean isValid(String requestVal,ConstraintValidatorContext paramConstraintValidatorContext) {
-        ConstraintValidatorContextImpl context = (ConstraintValidatorContextImpl) paramConstraintValidatorContext;
-        String fileName = "";
-        alertMessage = null;
-        try {
-            Field basePath = ConstraintValidatorContextImpl.class.getDeclaredField("basePath");
-            basePath.setAccessible(true);  //这个起决定作用
-            PathImpl pathImpl = (PathImpl)basePath.get(context);
-            NodeImpl leafNode = pathImpl.getLeafNode();
-            fileName = leafNode.getName();
-        }catch (Exception e){
+	public boolean isValid(String requestVal, ConstraintValidatorContext context) {
+		if(required && (requestVal == null || requestVal.trim().isEmpty())){
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
         }
-		if(required && (requestVal==null || requestVal.trim().equals(""))){
-            if(message==null || message.trim().equals("")){
-                alertMessage = String.format("%s 不能为空",fileName);
-            }else{
-                alertMessage = message;
-            }
-		}else{
-            if(requestVal==null || requestVal.trim().equals("")){
-                return true;
-            }
-            for(String val : value){
-                if(ignoreCase?!requestVal.trim().equalsIgnoreCase(val):!requestVal.trim().equals(val)){
-                    if(message==null || message.trim().equals("")){
-                        alertMessage = String.format("%s 的值不在规定范围",fileName);
-                    }else{
-                        alertMessage = message;
-                    }
-                }else {
-                    return true;
-                }
-            }
 
+        if(requestVal == null || requestVal.trim().isEmpty()){
+            return true;
+        }
+
+        boolean matched = false;
+        for(String val : value){
+            if(ignoreCase ? requestVal.trim().equalsIgnoreCase(val) : requestVal.trim().equals(val)){
+                matched = true;
+                break;
+            }
+        }
+
+        if(!matched && enumTypes.length > 0){
             for (EnumType enumType : enumTypes) {
                 String key = enumType.valKey();
                 String[] include = enumType.include();
@@ -71,12 +54,12 @@ public class ValInValidator implements ConstraintValidator<ValIn, String> {
                 Enum[] enumConstants = enumName.getEnumConstants();
                 for (Enum enumConstant : enumConstants) {
                     String name = enumConstant.name();
-                    if(include!=null && include.length>0){
-                        boolean present = Arrays.stream(include).filter(a -> name.equalsIgnoreCase(a)).findFirst().isPresent();
+                    if(include != null && include.length > 0){
+                        boolean present = Arrays.stream(include).anyMatch(a -> name.equalsIgnoreCase(a));
                         if(!present) continue;
                     }
-                    if(exclude!=null && exclude.length>0){
-                        boolean present = Arrays.stream(exclude).filter(a -> name.equalsIgnoreCase(a)).findFirst().isPresent();
+                    if(exclude != null && exclude.length > 0){
+                        boolean present = Arrays.stream(exclude).anyMatch(a -> name.equalsIgnoreCase(a));
                         if(present) continue;
                     }
                     Class declaringClass = enumConstant.getDeclaringClass();
@@ -85,28 +68,26 @@ public class ValInValidator implements ConstraintValidator<ValIn, String> {
                         declaredField.setAccessible(true);
                         Object o = declaredField.get(enumConstant);
                         String val = String.valueOf(o);
-                        if(ignoreCase?!requestVal.trim().equalsIgnoreCase(val):!requestVal.trim().equals(val)){
-                            if(message==null || message.trim().equals("")){
-                                alertMessage = String.format("%s 的值不在规定范围",fileName);
-                            }else{
-                                alertMessage = message;
-                            }
-                        }else {
-                            return true;
+                        if(ignoreCase ? requestVal.trim().equalsIgnoreCase(val) : requestVal.trim().equals(val)){
+                            matched = true;
+                            break;
                         }
                     }catch (Exception e){
-
+                        // Ignore field access errors
                     }
                 }
+                if(matched) break;
             }
         }
 
-        if(StringUtils.isBlank(alertMessage)){
-            return true;
+        if(!matched){
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
         }
 
-		paramConstraintValidatorContext.disableDefaultConstraintViolation();
-		paramConstraintValidatorContext.buildConstraintViolationWithTemplate(alertMessage).addConstraintViolation();
-		return false;
+        return true;
 	}
 }

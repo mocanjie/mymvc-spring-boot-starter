@@ -1,23 +1,16 @@
 package io.github.mocanjie.base.mymvc.validator;
 
-import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
-import org.hibernate.validator.internal.engine.path.NodeImpl;
-import org.hibernate.validator.internal.engine.path.PathImpl;
-import org.springframework.util.StringUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 
 public class DateValidator implements ConstraintValidator<Date, String> {
-	
+
 	private String message;
     private boolean required;
     private String format;
-    private String alertMessage;
-
-    private SimpleDateFormat sdf = new SimpleDateFormat();
+    private final SimpleDateFormat sdf = new SimpleDateFormat();
 
 
 	@Override
@@ -28,45 +21,30 @@ public class DateValidator implements ConstraintValidator<Date, String> {
 	}
 
 	@Override
-	public boolean isValid(String requestVal,ConstraintValidatorContext paramConstraintValidatorContext) {
-        ConstraintValidatorContextImpl context = (ConstraintValidatorContextImpl) paramConstraintValidatorContext;
-        String fileName = "";
-        alertMessage = null;
-        try {
-            Field basePath = ConstraintValidatorContextImpl.class.getDeclaredField("basePath");
-            basePath.setAccessible(true);  //这个起决定作用
-            PathImpl pathImpl = (PathImpl)basePath.get(context);
-            NodeImpl leafNode = pathImpl.getLeafNode();
-            fileName = leafNode.getName();
-        }catch (Exception e){
+	public boolean isValid(String requestVal, ConstraintValidatorContext context) {
+		if(required && (requestVal == null || requestVal.trim().isEmpty())){
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
         }
-		if(required && (requestVal==null || requestVal.trim().equals(""))){
-            if(message==null || message.trim().equals("")){
-                alertMessage = String.format("%s 不能为空",fileName);
-            }else{
-                alertMessage = message;
-            }
-		}else{
-            if(requestVal==null || requestVal.trim().equals("")){
-                return true;
-            }
-            try{
-                sdf.applyPattern(format);
-                sdf.parse(requestVal);
-            }catch (Exception e){
-                if(message==null || message.trim().equals("")){
-                    alertMessage = String.format("%s 必须是%s格式的日期",fileName,format);
-                }else{
-                    alertMessage = message;
-                }
-            }
-		}
-        if(!StringUtils.hasText(alertMessage)){
+
+        if(requestVal == null || requestVal.trim().isEmpty()){
             return true;
         }
-		paramConstraintValidatorContext.disableDefaultConstraintViolation();
-		paramConstraintValidatorContext.buildConstraintViolationWithTemplate(alertMessage).addConstraintViolation();
-		return false;
+
+        try{
+            sdf.applyPattern(format);
+            sdf.parse(requestVal);
+            return true;
+        }catch (Exception e){
+            if(!StringUtils.isBlank(message)){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+            }
+            return false;
+        }
 	}
 
 }
