@@ -1,6 +1,6 @@
 # mymvc-spring-boot-starter
 
-一个轻量级的 Spring Boot MVC 增强 Starter，提供统一响应封装、全局异常处理、增强参数校验等功能。
+一个轻量级的 Spring Boot MVC 增强 Starter，提供统一响应封装、全局异常处理、增强参数校验、隐私字段脱敏等功能。
 
 [![Maven Central](https://img.shields.io/badge/maven--central-spring3-blue)](https://search.maven.org/artifact/io.github.mocanjie/mymvc-spring-boot-starter)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green)](http://www.apache.org/licenses/LICENSE-2.0.txt)
@@ -12,6 +12,7 @@
 - 🚀 **统一响应封装** - 提供 `MyResponseResult<T>` 统一返回格式
 - 🛡️ **全局异常处理** - 继承 `MyBaseController` 自动处理常见异常
 - ✅ **增强参数校验** - 提供 5 种开箱即用的自定义校验器
+- 🔒 **隐私字段脱敏** - `@Privacy` 注解自动遮蔽响应 DTO 中的敏感字段，支持 Jackson / Fastjson / Fastjson2
 - 🎯 **零侵入集成** - 基于 Spring Boot 自动装配，引入即可使用
 - ⚡ **轻量灵活** - optional 依赖设计，容器中立，依赖注入优化
 
@@ -121,9 +122,67 @@ public class UserService {
 }
 ```
 
-#### 3. 增强参数校验
+#### 3. 隐私字段脱敏
 
-##### 3.1 实体类校验
+在响应 DTO 的字段上添加 `@Privacy` 注解，序列化时自动遮蔽敏感数据，无需改动业务代码。
+
+```java
+public class UserVO {
+
+    @Privacy(type = PrivacyType.PHONE)
+    private String phone;      // 138****8888
+
+    @Privacy(type = PrivacyType.NAME)
+    private String name;       // 张*明
+
+    @Privacy(type = PrivacyType.EMAIL)
+    private String email;      // zh***@qq.com
+
+    @Privacy(type = PrivacyType.ID_CARD)
+    private String idCard;     // 110101****2345
+
+    @Privacy(type = PrivacyType.BANK_CARD)
+    private String bankCard;   // ****1234
+
+    @Privacy(type = PrivacyType.ADDRESS)
+    private String address;    // 北京市朝阳区****
+
+    @Privacy(left = 3, right = 4)
+    private String custom1;    // 固定保留前3后4位
+
+    @Privacy(percent = 0.6)
+    private String custom2;    // 遮蔽中间60%
+
+    @Privacy(maskChar = '#')
+    private String custom3;    // 自定义遮蔽字符
+}
+```
+
+**预设策略说明：**
+
+| 类型 | 保留规则 | 示例 |
+|------|---------|------|
+| `PHONE` | 前3后4 | `138****8888` |
+| `NAME` | 首尾各1 | `张*明` |
+| `EMAIL` | 遮蔽本地部分中间 | `zh***@qq.com` |
+| `ID_CARD` | 前6后4 | `110101****2345` |
+| `BANK_CARD` | 仅保留后4 | `****1234` |
+| `ADDRESS` | 保留前6 | `北京市朝阳区****` |
+| `CUSTOM` | 由 `left`/`right`/`percent` 决定 | 自定义 |
+
+**序列化框架支持：**
+
+| 框架 | 检测条件 | 说明 |
+|------|---------|------|
+| Jackson | classpath 含 `jackson-databind` | Spring Boot Web 默认集成，自动生效 |
+| Fastjson | classpath 含 `com.alibaba:fastjson` | 自动注册 `ValueFilter` |
+| Fastjson2 | classpath 含 `com.alibaba.fastjson2:fastjson2` | 自动注册 `ValueFilter` |
+
+三个框架可同时共存，各自处理自己的序列化路径。
+
+#### 4. 增强参数校验
+
+##### 4.1 实体类校验
 
 ```java
 public class UserDTO {
@@ -159,7 +218,7 @@ public class UserController extends MyBaseController {
 }
 ```
 
-##### 3.2 方法参数校验
+##### 4.2 方法参数校验
 
 使用 `@Validated` 注解在方法上启用参数级别的校验：
 
@@ -630,6 +689,9 @@ public class JacksonConfig {
 - `jakarta.validation-api` - 校验 API
 - `hibernate-validator` - 校验实现
 - `slf4j-api` - 日志接口
+- `jackson-databind` - 隐私脱敏 Jackson 适配（有则激活）
+- `fastjson` - 隐私脱敏 Fastjson v1 适配（有则激活）
+- `fastjson2` - 隐私脱敏 Fastjson2 适配（有则激活）
 
 ### 为什么这样设计？
 
@@ -640,7 +702,11 @@ public class JacksonConfig {
 
 ## 更新日志
 
-### spring3 版本（最新）
+### 1.0-jdk21 版本（最新）
+- ✅ **隐私脱敏**：新增 `@Privacy` 注解，支持 Jackson / Fastjson / Fastjson2 自动脱敏
+- ✅ 升级 JDK 至 21
+
+### spring3 版本
 - ✅ 升级支持 Spring Boot 3.x 和 Jakarta EE
 - ✅ **架构优化**：移除所有 Hibernate Validator 内部 API 反射调用
 - ✅ **依赖优化**：采用最少依赖原则，核心依赖标记为 optional
